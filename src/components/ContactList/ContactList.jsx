@@ -1,4 +1,8 @@
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
+import { useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteContactsAction } from 'redux/contacts/slice.contacts';
+import { getContacts, getFilter } from 'redux/selectors';
 import {
   ContactBtn,
   ContactItem,
@@ -6,10 +10,22 @@ import {
   ListUl,
 } from './ContactList.styled';
 
-export const ContactList = ({ contacts, removeContacts }) => {
+export const ContactList = () => {
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
+  const dispatch = useDispatch();
+
+  const removeContacts = id => {
+    dispatch(deleteContactsAction(id));
+  };
+  const filteredContacts = useMemo(
+    () => contacts.filter(contact => contact.name.includes(filter)),
+    [filter, contacts]
+  );
+
   return (
     <ListUl>
-      {contacts.map(({ id, name, number }) => {
+      {filteredContacts.map(({ id, name, number }) => {
         return (
           <ContactItem key={id}>
             <ContactText>
@@ -21,16 +37,4 @@ export const ContactList = ({ contacts, removeContacts }) => {
       })}
     </ListUl>
   );
-};
-
-ContactList.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.exact({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      name: PropTypes.string,
-      number: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-        .isRequired,
-    })
-  ).isRequired,
-  removeContacts: PropTypes.func.isRequired,
 };

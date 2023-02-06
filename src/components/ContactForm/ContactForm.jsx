@@ -1,64 +1,53 @@
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { nanoid } from 'nanoid';
 import { useState } from 'react';
-import { PropTypes } from 'prop-types';
-import { Form, FormBtn, FormInput, FormLabel } from './ContactForm.styled';
 
-export const ContactForm = ({ onSubmitForm }) => {
+import { Form, FormBtn, FormInput, FormLabel } from './ContactForm.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContactsAction } from 'redux/contacts/slice.contacts';
+import { getContacts } from 'redux/selectors';
+
+export const ContactForm = () => {
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
-  // state = {
-  //   name: '',
-  //   number: '',
-  // };
 
   const handleChange = e => {
     const { name, value } = e.target;
 
     switch (name) {
       case 'name':
-        setName(value);
+        setName(value.trim());
         break;
       case 'number':
-        setNumber(value);
+        setNumber(value.trim());
         break;
       default:
         Notify.failure('🐷 Error happened. Please try again');
         break;
     }
   };
-  // handleChange = e => {
-  //   const { name, value } = e.target;
-  //   this.setState({ [name]: value });
-  // };
-
-  //
-  //
-  //
-  //
-  //
 
   const handleSubmit = e => {
     e.preventDefault();
 
-    onSubmitForm({ name, number, id: nanoid() });
+    const isContactExist = contacts.some(
+      item => item.name.toLowerCase() === name.toLowerCase()
+    );
+    if (isContactExist) {
+      reset();
+      return Notify.failure(` ${name} is already in contacts. 😢`);
+    }
+    dispatch(addContactsAction({ name, number, id: nanoid() }));
+
     reset();
   };
-  // handleSubmit = e => {
-  //   e.preventDefault();
-  //   this.props.onSubmitForm({ ...this.state, id: nanoid() });
-  //   this.reset();
-  // };
-  //
-  //
-  //
+
   const reset = () => {
     setName('');
     setNumber('');
   };
-  // reset = () => {
-  //   this.setState({ name: '', number: '' });
-  // };
 
   return (
     <Form onSubmit={handleSubmit}>
@@ -86,8 +75,4 @@ export const ContactForm = ({ onSubmitForm }) => {
       <FormBtn type="submit">Add contact</FormBtn>
     </Form>
   );
-};
-
-ContactForm.propTypes = {
-  onSubmitForm: PropTypes.func.isRequired,
 };
